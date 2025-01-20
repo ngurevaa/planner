@@ -51,22 +51,27 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import ru.kpfu.itis.gureva.feature.home.impl.R
-import ru.kpfu.itis.gureva.core.design.util.noRippleClickable
+import ru.kpfu.itis.gureva.core.ui.noRippleClickable
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import ru.kpfu.itis.gureva.core.design.theme.bodyFontFamily
 import androidx.compose.ui.text.TextStyle
+import ru.kpfu.itis.gureva.core.designsystem.theme.PlannerTheme
+import ru.kpfu.itis.gureva.core.designsystem.theme.bodyFontFamily
+import ru.kpfu.itis.gureva.feature.home.api.model.Group
 
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel(),
     navigateToGroup: (Int?) -> Unit
 ) {
-    val state by viewModel.state.collectAsStateWithLifecycle()
-    HomeScreenContent(state, viewModel::obtainEvent, navigateToGroup)
+    PlannerTheme {
+        val state by viewModel.state.collectAsStateWithLifecycle()
+        HomeScreenContent(state, viewModel::obtainEvent, navigateToGroup)
+    }
+
 }
 
 @Composable
@@ -84,9 +89,9 @@ fun HomeScreenContent(
             DateHeader(uiState, Modifier.padding(horizontal = 24.dp))
             Groups(uiState, eventHandler, navigateToGroup, Modifier.padding(horizontal = 16.dp))
 
-//            if (uiState.showBottomSheet) {
-//                MainBottomSheet()
-//            }
+            if (uiState.showBottomSheet) {
+                GroupCreateBottomSheet()
+            }
         }
     }
 }
@@ -255,7 +260,7 @@ fun AddGroup(
 
 @Composable
 fun Group(
-    item: GroupEntity,
+    item: Group,
     navigateToGroup: (Int?) -> Unit
 ) {
     ElevatedCard(

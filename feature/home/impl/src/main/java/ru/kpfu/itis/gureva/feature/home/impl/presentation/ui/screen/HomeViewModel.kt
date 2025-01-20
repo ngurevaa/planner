@@ -8,20 +8,20 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import ru.kpfu.itis.gureva.core.database.entity.GroupEntity
 import ru.kpfu.itis.gureva.core.utils.CalendarUtil
+import ru.kpfu.itis.gureva.feature.home.api.model.Group
+import ru.kpfu.itis.gureva.feature.home.api.repository.HomeRepository
+import ru.kpfu.itis.gureva.feature.home.api.usecase.GetAllGroupsUseCase
 import javax.inject.Inject
 
 data class HomeScreenState(
     val weekday: String = "",
     val date: String = "",
-    val groups: List<GroupEntity> = listOf(),
+    val groups: List<Group> = listOf(),
     val searchState: String = "",
     val expanded: Boolean = true,
     val showBottomSheet: Boolean = false
-)
-
-data class GroupEntity(
-    val name: String
 )
 
 sealed interface HomeScreenEvent {
@@ -34,7 +34,8 @@ sealed interface HomeScreenEvent {
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    calendar: CalendarUtil
+    private val calendar: CalendarUtil,
+    private val getAllGroupsUseCase: GetAllGroupsUseCase
 ) : ViewModel() {
     private val _state = MutableStateFlow(
         HomeScreenState(
@@ -46,11 +47,11 @@ class HomeViewModel @Inject constructor(
         get() = _state.asStateFlow()
 
     init {
-//        viewModelScope.launch {
-//            _state.update {
-//                it.copy(groups = groupRepository.getAll())
-//            }
-//        }
+        viewModelScope.launch {
+            _state.update {
+                it.copy(groups = getAllGroupsUseCase())
+            }
+        }
     }
 
     fun obtainEvent(event: HomeScreenEvent) {
@@ -64,11 +65,11 @@ class HomeViewModel @Inject constructor(
     }
 
     private fun onBottomSheetClose() {
-//        viewModelScope.launch {
-//            _state.update {
-//                it.copy(groups = groupRepository.getAll(), showBottomSheet = false)
-//            }
-//        }
+        viewModelScope.launch {
+            _state.update {
+                it.copy(groups = getAllGroupsUseCase(), showBottomSheet = false)
+            }
+        }
     }
 
 

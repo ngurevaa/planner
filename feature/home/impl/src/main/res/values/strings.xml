@@ -1,3 +1,6 @@
 <resources>
     <string name="cansel">Отмена</string>
+    <string name="new_list">Новый список</string>
+    <string name="empty_group_name_error">Пустое название списка</string>
+    <string name="existing_group_name_error">Список с таким названием уже существует</string>
 </resources>

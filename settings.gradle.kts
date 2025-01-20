@@ -24,7 +24,7 @@ include(":app")
 
 include(":core")
 include(":core:utils")
-include(":core:design")
+include(":core:designsystem")
 include(":core:database")
 
 include(":feature")
@@ -32,3 +32,4 @@ include(":feature:home")
 include(":feature:home:impl")
 include(":feature:home:api")
 
+include(":core:ui")
