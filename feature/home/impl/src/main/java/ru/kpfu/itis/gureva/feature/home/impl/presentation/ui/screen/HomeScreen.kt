@@ -70,7 +70,7 @@ fun HomeScreen(
     HomeScreenContent(state, viewModel::dispatch, navigateToGroup)
 
     if (state.isGroupCreateBottomSheetVisible) {
-        GroupCreateBottomSheet()
+        GroupCreateBottomSheet(viewModel)
     }
 }
 

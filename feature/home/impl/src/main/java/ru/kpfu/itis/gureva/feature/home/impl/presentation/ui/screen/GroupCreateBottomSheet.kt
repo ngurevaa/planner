@@ -3,19 +3,13 @@ package ru.kpfu.itis.gureva.feature.home.impl.presentation.ui.screen
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.ime
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
@@ -24,7 +18,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -44,59 +37,72 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.DialogWindowProvider
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.orbitmvi.orbit.compose.collectAsState
+import org.orbitmvi.orbit.compose.collectSideEffect
 import ru.kpfu.itis.gureva.core.designsystem.component.BottomSheetDragHandle
 import ru.kpfu.itis.gureva.core.designsystem.theme.bodyFontFamily
 import ru.kpfu.itis.gureva.core.ui.noRippleClickable
 import ru.kpfu.itis.gureva.feature.home.impl.R
 
-@Composable
-fun GroupCreateBottomSheet(
-    viewModelSheet: GroupCreateViewModel = hiltViewModel(),
-    viewModelScreen: HomeViewModel = hiltViewModel()
-) {
-    val eventHandlerSheet = viewModelSheet::obtainEvent
-    val eventHandlerScreen = viewModelScreen::obtainEvent
-    val action by viewModelSheet.action.collectAsStateWithLifecycle()
-
-    GroupCreateBottomSheetContent(action, eventHandlerSheet, eventHandlerScreen)
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GroupCreateBottomSheetContent(
-    action: GroupCreateBottomSheetAction?,
-    eventHandlerSheet: (GroupCreateBottomSheetEvent) -> Unit,
-    eventHandlerScreen: (HomeScreenEvent) -> Unit
+fun GroupCreateBottomSheet(
+    viewModel: HomeViewModel
 ) {
+    val state by viewModel.collectAsState()
+    val dispatch = viewModel::dispatch
+
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val scope = rememberCoroutineScope()
 
     ModalBottomSheet(
         sheetState = sheetState,
-        onDismissRequest = { eventHandlerScreen(HomeScreenEvent.OnBottomSheetClose) },
+        onDismissRequest = { dispatch(HomeScreenAction.CloseGroupCreateBottomSheet) },
         shape = RoundedCornerShape(8.dp),
         dragHandle = { BottomSheetDragHandle(title = stringResource(id = R.string.new_list)) {
             scope.launch { sheetState.hide() }
                 .invokeOnCompletion {
                     if (!sheetState.isVisible) {
-                        eventHandlerScreen(HomeScreenEvent.OnBottomSheetClose)
+                        dispatch(HomeScreenAction.CloseGroupCreateBottomSheet)
                     }
                 }
         } }
     ) {
+        GroupCreateBottomSheetContent(state, dispatch)
+    }
+
+    viewModel.collectSideEffect {
+        when (it) {
+            is HomeScreenSideEffect.CloseBottomSheet -> {
+                scope.launch { sheetState.hide() }
+                    .invokeOnCompletion {
+                        if (!sheetState.isVisible) {
+                            dispatch(HomeScreenAction.CloseGroupCreateBottomSheet)
+                        }
+                    }
+            }
+            is HomeScreenSideEffect.NavigateToGroup -> TODO()
+        }
+    }
+}
+
+@Composable
+fun GroupCreateBottomSheetContent(
+    state: HomeScreenState,
+    dispatch: (HomeScreenAction) -> Unit,
+) {
+    Column {
         val groupName = remember {
             mutableStateOf("")
         }
         GroupNameField(groupName)
-        SaveGroupButton(action, eventHandlerSheet, eventHandlerScreen, groupName, scope, sheetState)
+        SaveGroupButton(state, dispatch, groupName)
     }
 }
 
@@ -133,15 +139,11 @@ fun ColumnScope.GroupNameField(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SaveGroupButton(
-    action: GroupCreateBottomSheetAction?,
-    eventHandlerSheet: (GroupCreateBottomSheetEvent) -> Unit,
-    eventHandlerScreen: (HomeScreenEvent) -> Unit,
-    groupName: MutableState<String>,
-    scope: CoroutineScope,
-    sheetState: SheetState
+    state: HomeScreenState,
+    dispatch: (HomeScreenAction) -> Unit,
+    groupName: MutableState<String>
 ) {
     var visibility by remember {
         mutableStateOf(false)
@@ -158,52 +160,37 @@ fun SaveGroupButton(
                 .height(80.dp)
                 .noRippleClickable {
                     if (!visibility) {
-                        eventHandlerSheet(GroupCreateBottomSheetEvent.OnGroupSaveClicked(groupName.value))
+                        dispatch(HomeScreenAction.SaveGroup(groupName.value))
                     }
                 },
         ) {
-            var first by remember {
-                mutableStateOf(true)
+//            var first by remember {
+//                mutableStateOf(true)
+//            }
+            LaunchedEffect(state.errorId) {
+                if (state.errorId != 0) visibility = true
+//                    if (!first) visibility = true
+//                    else first = false
             }
-            LaunchedEffect(key1 = action) {
-                when (action) {
-                    is GroupCreateBottomSheetAction.ShowError -> {
-                        if (action.id != 0) visibility = true
-//                        if (!first) visibility = true
-//                        else first = false
+        }
+
+        Crossfade(
+            targetState = visibility,
+            animationSpec = tween(1000),
+            label = ""
+        ) { visible ->
+            if (visible) {
+                ErrorMessage(state.groupNameError ?: "")
+
+                LaunchedEffect(visibility) {
+                    if (visibility) {
+                        delay(1500)
+                        visibility = false
                     }
-                    is GroupCreateBottomSheetAction.CloseBottomSheet -> {
-                        scope.launch { sheetState.hide() }
-                            .invokeOnCompletion {
-                                if (!sheetState.isVisible) {
-                                    eventHandlerScreen(HomeScreenEvent.OnBottomSheetClose)
-                                }
-                            }
-                    }
-                    else -> {}
                 }
             }
-
-            Crossfade(
-                targetState = visibility,
-                animationSpec = tween(1000),
-                label = ""
-            ) { visible ->
-                if (visible) {
-                    if (action is GroupCreateBottomSheetAction.ShowError) {
-                        ErrorMessage((action as? GroupCreateBottomSheetAction.ShowError)?.message.toString())
-
-                        LaunchedEffect(visibility) {
-                            if (visibility) {
-                                delay(1500)
-                                visibility = false
-                            }
-                        }
-                    }
-                }
-                else {
-                    SaveButton()
-                }
+            else {
+                SaveButton()
             }
         }
     }
@@ -212,11 +199,13 @@ fun SaveGroupButton(
 @Composable
 fun SaveButton() {
     Box(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(80.dp),
         contentAlignment = Alignment.Center
     ) {
         Icon(
-            Icons.Filled.Add,
+            imageVector = Icons.Filled.Add,
             contentDescription = null
         )
     }
@@ -228,7 +217,8 @@ fun ErrorMessage(
 ) {
     Box(
         modifier = Modifier
-            .fillMaxSize()
+            .fillMaxWidth()
+            .height(80.dp)
             .background(MaterialTheme.colorScheme.error),
         contentAlignment = Alignment.Center
     ) {

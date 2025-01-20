@@ -8,8 +8,11 @@ import kotlinx.coroutines.launch
 import org.orbitmvi.orbit.ContainerHost
 import org.orbitmvi.orbit.viewmodel.container
 import ru.kpfu.itis.gureva.core.utils.CalendarUtil
+import ru.kpfu.itis.gureva.core.utils.ResourceManager
 import ru.kpfu.itis.gureva.feature.home.api.model.Group
 import ru.kpfu.itis.gureva.feature.home.api.usecase.GetAllGroupsUseCase
+import ru.kpfu.itis.gureva.feature.home.api.usecase.SaveGroupUseCase
+import ru.kpfu.itis.gureva.feature.home.impl.R
 import javax.inject.Inject
 
 data class HomeScreenState(
@@ -18,7 +21,9 @@ data class HomeScreenState(
     val groups: List<Group> = listOf(),
     val searchState: String = "",
     val searchFocused: Boolean = false,
-    val isGroupCreateBottomSheetVisible: Boolean = false
+    val isGroupCreateBottomSheetVisible: Boolean = false,
+    val groupNameError: String? = null,
+    val errorId: Int = 0
 )
 
 sealed interface HomeScreenAction {
@@ -31,13 +36,16 @@ sealed interface HomeScreenAction {
 }
 
 sealed interface HomeScreenSideEffect {
-    data class NavigateToGroup(val id: Int): HomeScreenSideEffect
+    data class NavigateToGroup(val id: Int) : HomeScreenSideEffect
+    data object CloseBottomSheet : HomeScreenSideEffect
 }
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     calendar: CalendarUtil,
-    private val getAllGroupsUseCase: GetAllGroupsUseCase
+    private val getAllGroupsUseCase: GetAllGroupsUseCase,
+    private val saveGroupUseCase: SaveGroupUseCase,
+    private val resourceManager: ResourceManager,
 ) : ViewModel(), ContainerHost<HomeScreenState, HomeScreenSideEffect> {
 
     override val container = container<HomeScreenState, HomeScreenSideEffect>(HomeScreenState())
@@ -65,12 +73,27 @@ class HomeViewModel @Inject constructor(
     }
 
     private fun saveGroup(name: String) = intent {
-
+        if (name.trim().isEmpty()) {
+            reduce { state.copy(
+                groupNameError = resourceManager.getString(R.string.empty_group_name_error),
+                errorId = state.errorId + 1
+            ) }
+        }
+        else if (saveGroupUseCase(name)) {
+            val groups = getAllGroupsUseCase()
+            reduce { state.copy(groups = groups, groupNameError = null, errorId = 0) }
+            postSideEffect(HomeScreenSideEffect.CloseBottomSheet)
+        }
+        else {
+            reduce { state.copy(
+                groupNameError = resourceManager.getString(R.string.existing_group_name_error),
+                errorId = state.errorId + 1
+            ) }
+        }
     }
 
     private fun closeGroupCreateBottomSheet() = intent {
-        val groups = getAllGroupsUseCase()
-        reduce { state.copy(groups = groups, isGroupCreateBottomSheetVisible = false) }
+        reduce { state.copy(isGroupCreateBottomSheetVisible = false, groupNameError = null, errorId = 0) }
     }
 
     private fun openGroupCreateBottomSheet() = intent {
