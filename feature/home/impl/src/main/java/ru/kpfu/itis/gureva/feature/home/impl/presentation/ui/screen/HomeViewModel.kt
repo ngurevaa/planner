@@ -3,15 +3,12 @@ package ru.kpfu.itis.gureva.feature.home.impl.presentation.ui.screen
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import ru.kpfu.itis.gureva.core.database.entity.GroupEntity
+import org.orbitmvi.orbit.ContainerHost
+import org.orbitmvi.orbit.viewmodel.container
 import ru.kpfu.itis.gureva.core.utils.CalendarUtil
 import ru.kpfu.itis.gureva.feature.home.api.model.Group
-import ru.kpfu.itis.gureva.feature.home.api.repository.HomeRepository
 import ru.kpfu.itis.gureva.feature.home.api.usecase.GetAllGroupsUseCase
 import javax.inject.Inject
 
@@ -20,72 +17,75 @@ data class HomeScreenState(
     val date: String = "",
     val groups: List<Group> = listOf(),
     val searchState: String = "",
-    val expanded: Boolean = true,
-    val showBottomSheet: Boolean = false
+    val searchFocused: Boolean = false,
+    val isGroupCreateBottomSheetVisible: Boolean = false
 )
 
-sealed interface HomeScreenEvent {
-    data class OnSearchChanged(val search: String) : HomeScreenEvent
-    data class OnFocusChanged(val focus: Boolean) : HomeScreenEvent
-    data object OnCanselClicked : HomeScreenEvent
-    data object OnGroupCreateClicked: HomeScreenEvent
-    data object OnBottomSheetClose: HomeScreenEvent
+sealed interface HomeScreenAction {
+    data class SearchGroup(val search: String) : HomeScreenAction
+    data class FocusOnSearch(val focus: Boolean) : HomeScreenAction
+    data object CleanSearch : HomeScreenAction
+    data object OpenGroupCreateBottomSheet : HomeScreenAction
+    data object CloseGroupCreateBottomSheet : HomeScreenAction
+    data class SaveGroup(val name: String) : HomeScreenAction
+}
+
+sealed interface HomeScreenSideEffect {
+    data class NavigateToGroup(val id: Int): HomeScreenSideEffect
 }
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val calendar: CalendarUtil,
+    calendar: CalendarUtil,
     private val getAllGroupsUseCase: GetAllGroupsUseCase
-) : ViewModel() {
-    private val _state = MutableStateFlow(
-        HomeScreenState(
-            weekday = calendar.getWeekday().uppercase(),
-            date = calendar.getDate()
-        )
-    )
-    val state: StateFlow<HomeScreenState>
-        get() = _state.asStateFlow()
+) : ViewModel(), ContainerHost<HomeScreenState, HomeScreenSideEffect> {
+
+    override val container = container<HomeScreenState, HomeScreenSideEffect>(HomeScreenState())
 
     init {
-        viewModelScope.launch {
-            _state.update {
-                it.copy(groups = getAllGroupsUseCase())
-            }
+        intent {
+            val groups = getAllGroupsUseCase()
+            reduce { state.copy(
+                weekday = calendar.getWeekday().uppercase(),
+                date = calendar.getDate(),
+                groups = groups
+            ) }
         }
     }
 
-    fun obtainEvent(event: HomeScreenEvent) {
-        when (event) {
-            is HomeScreenEvent.OnSearchChanged -> onSearchChanged(event.search)
-            is HomeScreenEvent.OnFocusChanged -> onFocusChanged(event.focus)
-            is HomeScreenEvent.OnCanselClicked -> onCanselClicked()
-            is HomeScreenEvent.OnGroupCreateClicked -> onGroupCreateClicked()
-            is HomeScreenEvent.OnBottomSheetClose -> onBottomSheetClose()
+    fun dispatch(action: HomeScreenAction) {
+        when (action) {
+            is HomeScreenAction.SearchGroup -> searchGroup(action.search)
+            is HomeScreenAction.FocusOnSearch -> focusOnSearch(action.focus)
+            is HomeScreenAction.CleanSearch -> canselSearch()
+            is HomeScreenAction.OpenGroupCreateBottomSheet -> openGroupCreateBottomSheet()
+            is HomeScreenAction.CloseGroupCreateBottomSheet -> closeGroupCreateBottomSheet()
+            is HomeScreenAction.SaveGroup -> saveGroup(action.name)
         }
     }
 
-    private fun onBottomSheetClose() {
-        viewModelScope.launch {
-            _state.update {
-                it.copy(groups = getAllGroupsUseCase(), showBottomSheet = false)
-            }
-        }
+    private fun saveGroup(name: String) = intent {
+
     }
 
-
-    private fun onGroupCreateClicked() {
-        _state.update { it.copy(showBottomSheet = true) }
+    private fun closeGroupCreateBottomSheet() = intent {
+        val groups = getAllGroupsUseCase()
+        reduce { state.copy(groups = groups, isGroupCreateBottomSheetVisible = false) }
     }
 
-    private fun onSearchChanged(search: String) {
-        _state.update { it.copy(searchState = search) }
+    private fun openGroupCreateBottomSheet() = intent {
+        reduce { state.copy(isGroupCreateBottomSheetVisible = true) }
     }
 
-    private fun onFocusChanged(focus: Boolean) {
-        _state.update { it.copy(expanded = focus) }
+    private fun searchGroup(search: String) = intent {
+        reduce { state.copy(searchState = search) }
     }
 
-    private fun onCanselClicked() {
-        _state.update { it.copy(searchState = "") }
+    private fun focusOnSearch(focus: Boolean) = intent {
+        reduce { state.copy(searchFocused = focus) }
+    }
+
+    private fun canselSearch() = intent {
+        reduce { state.copy(searchState = "") }
     }
 }

@@ -56,9 +56,8 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.text.TextStyle
-import ru.kpfu.itis.gureva.core.designsystem.theme.PlannerTheme
+import org.orbitmvi.orbit.compose.collectAsState
 import ru.kpfu.itis.gureva.core.designsystem.theme.bodyFontFamily
 import ru.kpfu.itis.gureva.feature.home.api.model.Group
 
@@ -67,17 +66,18 @@ fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel(),
     navigateToGroup: (Int?) -> Unit
 ) {
-    PlannerTheme {
-        val state by viewModel.state.collectAsStateWithLifecycle()
-        HomeScreenContent(state, viewModel::obtainEvent, navigateToGroup)
-    }
+    val state by viewModel.collectAsState()
+    HomeScreenContent(state, viewModel::dispatch, navigateToGroup)
 
+    if (state.isGroupCreateBottomSheetVisible) {
+        GroupCreateBottomSheet()
+    }
 }
 
 @Composable
 fun HomeScreenContent(
     uiState: HomeScreenState,
-    eventHandler: (HomeScreenEvent) -> Unit,
+    dispatch: (HomeScreenAction) -> Unit,
     navigateToGroup: (Int?) -> Unit
 ) {
     Surface(
@@ -87,11 +87,7 @@ fun HomeScreenContent(
             modifier = Modifier.padding(top = 36.dp)
         ) {
             DateHeader(uiState, Modifier.padding(horizontal = 24.dp))
-            Groups(uiState, eventHandler, navigateToGroup, Modifier.padding(horizontal = 16.dp))
-
-            if (uiState.showBottomSheet) {
-                GroupCreateBottomSheet()
-            }
+            Groups(uiState, dispatch, navigateToGroup, Modifier.padding(horizontal = 16.dp))
         }
     }
 }
@@ -102,7 +98,7 @@ fun DateHeader(
     modifier: Modifier = Modifier
 ) {
     AnimatedVisibility(
-        visible = uiState.expanded,
+        visible = !uiState.searchFocused,
         enter = expandVertically() + slideInVertically(),
         exit = shrinkVertically() + slideOutVertically()
     ) {
@@ -120,7 +116,7 @@ fun DateHeader(
 @Composable
 fun Groups(
     uiState: HomeScreenState,
-    eventHandler: (HomeScreenEvent) -> Unit,
+    dispatch: (HomeScreenAction) -> Unit,
     navigateToGroup: (Int?) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -138,7 +134,7 @@ fun Groups(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Search(uiState, eventHandler)
+                Search(uiState, dispatch)
             }
         }
 
@@ -149,7 +145,7 @@ fun Groups(
         }
 
         item {
-            AddGroup(eventHandler)
+            AddGroup(dispatch)
         }
     }
 }
@@ -157,7 +153,7 @@ fun Groups(
 @Composable
 fun RowScope.Search(
     uiState: HomeScreenState,
-    eventHandler: (HomeScreenEvent) -> Unit
+    dispatch: (HomeScreenAction) -> Unit
 ) {
     val focusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
@@ -165,12 +161,12 @@ fun RowScope.Search(
     BasicTextField(
         value = uiState.searchState,
         onValueChange = { value ->
-            eventHandler(HomeScreenEvent.OnSearchChanged(value))
+            dispatch(HomeScreenAction.SearchGroup(value))
         },
         modifier = Modifier
             .focusRequester(focusRequester)
             .onFocusChanged {
-                eventHandler(HomeScreenEvent.OnFocusChanged(!it.isFocused))
+                dispatch(HomeScreenAction.FocusOnSearch(it.isFocused))
             }
             .weight(1f),
         singleLine = true,
@@ -202,7 +198,7 @@ fun RowScope.Search(
                             imageVector = Icons.Filled.Clear,
                             contentDescription = null,
                             modifier = Modifier.noRippleClickable {
-                                eventHandler(HomeScreenEvent.OnCanselClicked)
+                                dispatch(HomeScreenAction.CleanSearch)
                             }
                         )
                     }
@@ -213,7 +209,7 @@ fun RowScope.Search(
     )
 
     AnimatedVisibility(
-        visible = !uiState.expanded,
+        visible = uiState.searchFocused,
         enter = expandHorizontally(expandFrom = Alignment.Start),
         exit = shrinkHorizontally(shrinkTowards = Alignment.Start)
     ) {
@@ -221,7 +217,7 @@ fun RowScope.Search(
             Spacer(modifier = Modifier.width(8.dp))
             Text(text = stringResource(id = R.string.cansel), modifier = Modifier
                 .noRippleClickable {
-                    eventHandler(HomeScreenEvent.OnCanselClicked)
+                    dispatch(HomeScreenAction.CleanSearch)
                     focusManager.clearFocus()
                 }
             )
@@ -231,7 +227,7 @@ fun RowScope.Search(
 
 @Composable
 fun AddGroup(
-    eventHandler: (HomeScreenEvent) -> Unit
+    dispatch: (HomeScreenAction) -> Unit
 ) {
     ElevatedCard(
         modifier = Modifier
@@ -249,7 +245,7 @@ fun AddGroup(
                 modifier = Modifier
                     .fillMaxSize()
                     .noRippleClickable {
-                        eventHandler(HomeScreenEvent.OnGroupCreateClicked)
+                        dispatch(HomeScreenAction.OpenGroupCreateBottomSheet)
                     },
             ) {
                 Icon(imageVector = Icons.Filled.Add, contentDescription = null)
