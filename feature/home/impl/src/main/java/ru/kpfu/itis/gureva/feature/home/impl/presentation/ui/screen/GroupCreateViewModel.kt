@@ -42,16 +42,15 @@ class GroupCreateViewModel @Inject constructor(
     private fun onGroupSaveClicked(name: String) {
         viewModelScope.launch {
             if (name.trim().isEmpty()) {
-                _action.update { GroupCreateBottomSheetAction.ShowError(groupNameErrorCount++, resourceManager.getString(
+                _action.update { GroupCreateBottomSheetAction.ShowError(++groupNameErrorCount, resourceManager.getString(
                     R.string.empty_group_name_error)) }
             }
-//            else if (groupRepository.getByName(name) != null) {
-//                _action.update { GroupCreateBottomSheetAction.ShowError(groupNameErrorCount++, resourceManager.getString(
-//                    R.string.existing_group_name_error)) }
-//            }
-            else {
-                saveGroupUseCase(name)
+            else if (saveGroupUseCase(name)) {
                 _action.update { GroupCreateBottomSheetAction.CloseBottomSheet }
+            }
+            else {
+                _action.update { GroupCreateBottomSheetAction.ShowError(++groupNameErrorCount, resourceManager.getString(
+                    R.string.existing_group_name_error)) }
             }
         }
     }

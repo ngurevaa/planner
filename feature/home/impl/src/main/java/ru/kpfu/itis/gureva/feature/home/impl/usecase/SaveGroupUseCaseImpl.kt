@@ -7,7 +7,11 @@ import javax.inject.Inject
 class SaveGroupUseCaseImpl @Inject constructor(
     private val homeRepository: HomeRepository
 ) : SaveGroupUseCase {
-    override suspend fun invoke(name: String) {
+    override suspend fun invoke(name: String): Boolean {
+        if (homeRepository.getGroupByName(name) != null) {
+            return false
+        }
         homeRepository.saveGroup(name)
+        return true
     }
 }

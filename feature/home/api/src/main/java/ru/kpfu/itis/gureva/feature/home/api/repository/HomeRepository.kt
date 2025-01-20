@@ -6,4 +6,6 @@ interface HomeRepository {
     suspend fun getAllGroups(): List<Group>
 
     suspend fun saveGroup(name: String)
+
+    suspend fun getGroupByName(name: String): Group?
 }

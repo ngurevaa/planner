@@ -20,4 +20,10 @@ class GroupRepository @Inject constructor(
             groupDao.save(GroupEntity(null, name))
         }
     }
+
+    suspend fun getByName(name: String): GroupEntity? {
+        return withContext(Dispatchers.IO) {
+            groupDao.getByName(name)
+        }
+    }
 }

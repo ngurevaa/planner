@@ -168,9 +168,9 @@ fun SaveGroupButton(
             LaunchedEffect(key1 = action) {
                 when (action) {
                     is GroupCreateBottomSheetAction.ShowError -> {
-//                        if (action.id != 0) visibility = true
-                        if (!first) visibility = true
-                        else first = false
+                        if (action.id != 0) visibility = true
+//                        if (!first) visibility = true
+//                        else first = false
                     }
                     is GroupCreateBottomSheetAction.CloseBottomSheet -> {
                         scope.launch { sheetState.hide() }
