@@ -23,7 +23,8 @@ data class HomeScreenState(
     val searchFocused: Boolean = false,
     val isGroupCreateBottomSheetVisible: Boolean = false,
     val groupNameError: String? = null,
-    val errorId: Int = 0
+    val errorId: Int = 0,
+    val groupName: String = ""
 )
 
 sealed interface HomeScreenAction {
@@ -32,7 +33,8 @@ sealed interface HomeScreenAction {
     data object CleanSearch : HomeScreenAction
     data object OpenGroupCreateBottomSheet : HomeScreenAction
     data object CloseGroupCreateBottomSheet : HomeScreenAction
-    data class SaveGroup(val name: String) : HomeScreenAction
+    data object SaveGroup : HomeScreenAction
+    data class UpdateGroupName(val name: String): HomeScreenAction
 }
 
 sealed interface HomeScreenSideEffect {
@@ -68,18 +70,24 @@ class HomeViewModel @Inject constructor(
             is HomeScreenAction.CleanSearch -> canselSearch()
             is HomeScreenAction.OpenGroupCreateBottomSheet -> openGroupCreateBottomSheet()
             is HomeScreenAction.CloseGroupCreateBottomSheet -> closeGroupCreateBottomSheet()
-            is HomeScreenAction.SaveGroup -> saveGroup(action.name)
+            is HomeScreenAction.SaveGroup -> saveGroup()
+            is HomeScreenAction.UpdateGroupName -> updateGroupName(action.name)
         }
     }
 
-    private fun saveGroup(name: String) = intent {
-        if (name.trim().isEmpty()) {
+    private fun updateGroupName(name: String) = intent {
+        if (name.length == 1 && name[0] == ' ') return@intent
+        if (name.length <= 30) reduce { state.copy(groupName = name) }
+    }
+
+    private fun saveGroup() = intent {
+        if (state.groupName.trim().isEmpty()) {
             reduce { state.copy(
                 groupNameError = resourceManager.getString(R.string.empty_group_name_error),
                 errorId = state.errorId + 1
             ) }
         }
-        else if (saveGroupUseCase(name)) {
+        else if (saveGroupUseCase(state.groupName)) {
             val groups = getAllGroupsUseCase()
             reduce { state.copy(groups = groups, groupNameError = null, errorId = 0) }
             postSideEffect(HomeScreenSideEffect.CloseBottomSheet)

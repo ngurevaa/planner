@@ -1,4 +1,4 @@
-package ru.kpfu.itis.gureva.app
+package ru.kpfu.itis.gureva.app.ui
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -14,7 +14,7 @@ class MainActivity : ComponentActivity() {
         //enableEdgeToEdge()
         setContent {
             PlannerTheme {
-                HomeScreen(navigateToGroup = {})
+                Navigation()
             }
         }
     }

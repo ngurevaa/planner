@@ -271,9 +271,9 @@ fun Group(
             contentAlignment = Alignment.BottomStart,
             modifier = Modifier
                 .fillMaxSize()
-//                .noRippleClickable {
-//                    navigateToGroup(item.id)
-//                }
+                .noRippleClickable {
+                    navigateToGroup(item.id)
+                }
         ) {
             Text(
                 text = item.name,

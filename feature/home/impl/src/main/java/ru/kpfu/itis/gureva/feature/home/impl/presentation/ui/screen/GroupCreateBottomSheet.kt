@@ -98,25 +98,22 @@ fun GroupCreateBottomSheetContent(
     dispatch: (HomeScreenAction) -> Unit,
 ) {
     Column {
-        val groupName = remember {
-            mutableStateOf("")
-        }
-        GroupNameField(groupName)
-        SaveGroupButton(state, dispatch, groupName)
+        GroupNameField(state, dispatch)
+        SaveGroupButton(state, dispatch)
     }
 }
 
 @Composable
 fun ColumnScope.GroupNameField(
-    groupName: MutableState<String>
+    state: HomeScreenState,
+    dispatch: (HomeScreenAction) -> Unit
 ) {
     val focusRequester = remember { FocusRequester() }
 
     BasicTextField(
-        value = groupName.value,
+        value = state.groupName,
         onValueChange = {
-            if (it.length == 1 && it[0] == ' ') return@BasicTextField
-            if (it.length <= 30) groupName.value = it
+            dispatch(HomeScreenAction.UpdateGroupName(it))
         },
         modifier = Modifier
             .padding(start = 24.dp, end = 24.dp, bottom = 24.dp)
@@ -131,7 +128,7 @@ fun ColumnScope.GroupNameField(
     }
 
     Text(
-        text = "${groupName.value.length}/30",
+        text = "${state.groupName.length}/30",
         modifier = Modifier
             .align(Alignment.End)
             .padding(8.dp),
@@ -142,10 +139,9 @@ fun ColumnScope.GroupNameField(
 @Composable
 fun SaveGroupButton(
     state: HomeScreenState,
-    dispatch: (HomeScreenAction) -> Unit,
-    groupName: MutableState<String>
+    dispatch: (HomeScreenAction) -> Unit
 ) {
-    var visibility by remember {
+    var errorVisibility by remember {
         mutableStateOf(false)
     }
 
@@ -159,33 +155,28 @@ fun SaveGroupButton(
                 .fillMaxWidth()
                 .height(80.dp)
                 .noRippleClickable {
-                    if (!visibility) {
-                        dispatch(HomeScreenAction.SaveGroup(groupName.value))
+                    if (!errorVisibility) {
+                        dispatch(HomeScreenAction.SaveGroup)
                     }
                 },
         ) {
-//            var first by remember {
-//                mutableStateOf(true)
-//            }
             LaunchedEffect(state.errorId) {
-                if (state.errorId != 0) visibility = true
-//                    if (!first) visibility = true
-//                    else first = false
+                if (state.errorId != 0) errorVisibility = true
             }
         }
 
         Crossfade(
-            targetState = visibility,
+            targetState = errorVisibility,
             animationSpec = tween(1000),
             label = ""
         ) { visible ->
             if (visible) {
                 ErrorMessage(state.groupNameError ?: "")
 
-                LaunchedEffect(visibility) {
-                    if (visibility) {
+                LaunchedEffect(errorVisibility) {
+                    if (errorVisibility) {
                         delay(1500)
-                        visibility = false
+                        errorVisibility = false
                     }
                 }
             }

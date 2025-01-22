@@ -1,19 +1,21 @@
 [versions]
 agp = "8.5.1"
 hiltAndroid = "2.49"
-hiltCompiler = "2.48"
-hiltNavigationCompose = "1.2.0"
+hiltCompiler = "2.49"
+hiltNavigationCompose = "1.2.0-alpha01"
 kotlin = "1.9.22"
 coreKtx = "1.13.1"
 junit = "4.13.2"
 junitVersion = "1.2.1"
 espressoCore = "3.6.1"
+kotlinxSerializationJson = "1.3.3"
 lifecycleRuntimeCompose = "2.8.5"
 lifecycleRuntimeKtx = "2.8.6"
 activityCompose = "1.9.2"
 composeBom = "2024.09.00"
 appcompat = "1.6.1"
 material = "1.10.0"
+navigationCompose = "2.8.0"
 orbit = "9.0.0"
 roomCompiler = "2.6.1"
 roomRuntime = "2.6.1"
@@ -48,6 +50,10 @@ androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref =
 orbit-compose = { module = "org.orbit-mvi:orbit-compose", version.ref = "orbit" }
 orbit-core = { module = "org.orbit-mvi:orbit-core", version.ref = "orbit" }
 orbit-viewmodel = { module = "org.orbit-mvi:orbit-viewmodel", version.ref = "orbit" }
+
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
+
+androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

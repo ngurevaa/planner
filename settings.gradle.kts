@@ -33,3 +33,6 @@ include(":feature:home:impl")
 include(":feature:home:api")
 
 include(":core:ui")
+include(":feature:group")
+include(":feature:group:api")
+include(":feature:group:impl")

@@ -5,13 +5,14 @@ plugins {
 }
 
 android {
-    namespace = "ru.kpfu.itis.gureva.feature.home.api"
+    namespace = "ru.kpfu.itis.gureva.feature.group.api"
     compileSdk = 34
 
     defaultConfig {
         minSdk = 25
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles("consumer-rules.pro")
     }
 
     buildTypes {
