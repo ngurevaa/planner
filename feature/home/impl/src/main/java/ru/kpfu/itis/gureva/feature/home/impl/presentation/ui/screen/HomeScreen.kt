@@ -64,7 +64,7 @@ import ru.kpfu.itis.gureva.feature.home.api.model.Group
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel(),
-    navigateToGroup: (Int?) -> Unit
+    navigateToGroup: (Long?) -> Unit
 ) {
     val state by viewModel.collectAsState()
     HomeScreenContent(state, viewModel::dispatch, navigateToGroup)
@@ -78,7 +78,7 @@ fun HomeScreen(
 fun HomeScreenContent(
     uiState: HomeScreenState,
     dispatch: (HomeScreenAction) -> Unit,
-    navigateToGroup: (Int?) -> Unit
+    navigateToGroup: (Long?) -> Unit
 ) {
     Surface(
         modifier = Modifier.fillMaxSize()
@@ -117,7 +117,7 @@ fun DateHeader(
 fun Groups(
     uiState: HomeScreenState,
     dispatch: (HomeScreenAction) -> Unit,
-    navigateToGroup: (Int?) -> Unit,
+    navigateToGroup: (Long?) -> Unit,
     modifier: Modifier = Modifier
 ) {
     LazyVerticalGrid(
@@ -257,7 +257,7 @@ fun AddGroup(
 @Composable
 fun Group(
     item: Group,
-    navigateToGroup: (Int?) -> Unit
+    navigateToGroup: (Long?) -> Unit
 ) {
     ElevatedCard(
         modifier = Modifier

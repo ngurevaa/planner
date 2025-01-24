@@ -50,6 +50,7 @@ dependencies {
     implementation(project(":core:database"))
     implementation(project(":core:ui"))
     implementation(project(":core:designsystem"))
+    implementation(project(":core:utils"))
 
     implementation(libs.hilt.android)
     implementation(libs.androidx.hilt.navigation.compose)

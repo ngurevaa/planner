@@ -15,8 +15,8 @@ class GroupRepository @Inject constructor(
         }
     }
 
-    suspend fun saveGroup(name: String) {
-        withContext(Dispatchers.IO) {
+    suspend fun saveGroup(name: String): Long {
+        return withContext(Dispatchers.IO) {
             groupDao.save(GroupEntity(null, name))
         }
     }
@@ -27,7 +27,7 @@ class GroupRepository @Inject constructor(
         }
     }
 
-    suspend fun getNameById(id: Int): String? {
+    suspend fun getNameById(id: Long): String? {
         return withContext(Dispatchers.IO) {
             return@withContext groupDao.getById(id)?.name
         }

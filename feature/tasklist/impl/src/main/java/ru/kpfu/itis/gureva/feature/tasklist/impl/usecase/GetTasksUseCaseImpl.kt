@@ -8,7 +8,7 @@ import javax.inject.Inject
 class GetTasksUseCaseImpl @Inject constructor(
     private val taskListRepository: TaskListRepository
 ) : GetTasksUseCase {
-    override suspend operator fun invoke(groupId: Int): List<Task> {
+    override suspend operator fun invoke(groupId: Long): List<Task> {
         return taskListRepository.getTasks(groupId)
     }
 }

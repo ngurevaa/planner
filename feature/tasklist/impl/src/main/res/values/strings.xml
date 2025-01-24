@@ -2,4 +2,5 @@
 <resources>
     <string name="btn_create_new_task">Добавить новую задачу</string>
     <string name="new_task">Новая задача</string>
+    <string name="error_empty_task">Пустая задача</string>
 </resources>

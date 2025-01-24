@@ -7,5 +7,5 @@ import ru.kpfu.itis.gureva.core.database.entity.TaskEntity
 @Dao
 interface TaskDao {
     @Query("select * from tasks where group_id = :id")
-    fun getAll(id: Int): List<TaskEntity>
+    fun getAll(id: Long): List<TaskEntity>
 }

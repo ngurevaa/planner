@@ -11,11 +11,11 @@ interface GroupDao {
     fun getAll(): List<GroupEntity>
 
     @Insert
-    fun save(entity: GroupEntity)
+    fun save(entity: GroupEntity): Long
 
     @Query("select * from groups where name = :name")
     fun getByName(name: String): GroupEntity?
 
     @Query("select * from groups where id = :id")
-    fun getById(id: Int): GroupEntity?
+    fun getById(id: Long): GroupEntity?
 }

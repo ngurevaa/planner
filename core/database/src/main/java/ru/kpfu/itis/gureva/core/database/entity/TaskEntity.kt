@@ -13,8 +13,8 @@ import androidx.room.PrimaryKey
 )
 data class TaskEntity(
     @PrimaryKey(autoGenerate = true)
-    val id: Int?,
+    val id: Long?,
     @ColumnInfo(name = "group_id")
     val groupId: Int,
-    val task: String
+    val name: String
 )

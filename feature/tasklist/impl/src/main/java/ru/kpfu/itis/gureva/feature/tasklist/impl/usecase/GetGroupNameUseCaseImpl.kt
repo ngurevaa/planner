@@ -7,5 +7,5 @@ import javax.inject.Inject
 class GetGroupNameUseCaseImpl @Inject constructor(
     private val groupRepository: TaskListRepository
 ) : GetGroupNameUseCase {
-    override suspend fun invoke(id: Int): String? = groupRepository.getGroupName(id)
+    override suspend fun invoke(id: Long): String? = groupRepository.getGroupName(id)
 }

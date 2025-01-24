@@ -9,7 +9,7 @@ import javax.inject.Inject
 class TaskRepository @Inject constructor(
     private val taskDao: TaskDao
 ) {
-    suspend fun getAllByGroupId(id: Int): List<TaskEntity> {
+    suspend fun getAllByGroupId(id: Long): List<TaskEntity> {
         return withContext(Dispatchers.IO) {
             taskDao.getAll(id)
         }

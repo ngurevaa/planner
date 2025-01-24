@@ -11,11 +11,15 @@ class TaskListRepositoryImpl @Inject constructor(
     private val groupRepository: GroupRepository,
     private val taskRepository: TaskRepository
 ) : TaskListRepository {
-    override suspend fun getGroupName(id: Int): String? {
+    override suspend fun getGroupName(id: Long): String? {
         return groupRepository.getNameById(id)
     }
 
-    override suspend fun getTasks(id: Int): List<Task> {
+    override suspend fun getTasks(id: Long): List<Task> {
         return taskRepository.getAllByGroupId(id).mapList()
+    }
+
+    override suspend fun saveTask(task: Task) {
+
     }
 }

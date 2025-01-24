@@ -9,7 +9,8 @@ import ru.kpfu.itis.gureva.core.utils.ResourceManager
 import ru.kpfu.itis.gureva.feature.home.api.model.Group
 import ru.kpfu.itis.gureva.feature.home.api.usecase.GetAllGroupsUseCase
 import ru.kpfu.itis.gureva.feature.home.api.usecase.SaveGroupUseCase
-import ru.kpfu.itis.gureva.feature.home.impl.R
+import ru.kpfu.itis.gureva.feature.home.impl.exception.EmptyGroupNameException
+import ru.kpfu.itis.gureva.feature.home.impl.exception.AlreadyExistingGroupNameException
 import javax.inject.Inject
 
 data class HomeScreenState(
@@ -44,7 +45,6 @@ class HomeViewModel @Inject constructor(
     calendar: CalendarUtil,
     private val getAllGroupsUseCase: GetAllGroupsUseCase,
     private val saveGroupUseCase: SaveGroupUseCase,
-    private val resourceManager: ResourceManager,
 ) : ViewModel(), ContainerHost<HomeScreenState, HomeScreenSideEffect> {
 
     override val container = container<HomeScreenState, HomeScreenSideEffect>(HomeScreenState())
@@ -78,27 +78,26 @@ class HomeViewModel @Inject constructor(
     }
 
     private fun saveGroup() = intent {
-        if (state.groupName.trim().isEmpty()) {
-            reduce { state.copy(
-                groupNameError = resourceManager.getString(R.string.empty_group_name_error),
-                errorId = state.errorId + 1
-            ) }
-        }
-        else if (saveGroupUseCase(state.groupName)) {
-            val groups = getAllGroupsUseCase()
-            reduce { state.copy(groups = groups, groupNameError = null, errorId = 0) }
-            postSideEffect(HomeScreenSideEffect.CloseBottomSheet)
-        }
-        else {
-            reduce { state.copy(
-                groupNameError = resourceManager.getString(R.string.existing_group_name_error),
-                errorId = state.errorId + 1
-            ) }
-        }
+        runCatching { saveGroupUseCase(state.groupName) }
+            .onSuccess { id ->
+                val groups = state.groups.toMutableList()
+                groups.add(Group(id, state.groupName))
+
+                reduce { state.copy(groups = groups, groupNameError = null, errorId = 0) }
+                postSideEffect(HomeScreenSideEffect.CloseBottomSheet)
+            }
+            .onFailure { ex ->
+                when (ex) {
+                    is EmptyGroupNameException, is AlreadyExistingGroupNameException -> {
+                        reduce { state.copy(groupNameError = ex.message, errorId = state.errorId + 1) }
+                    }
+                    else -> throw ex
+                }
+            }
     }
 
     private fun closeGroupCreateBottomSheet() = intent {
-        reduce { state.copy(isGroupCreateBottomSheetVisible = false, groupNameError = null, errorId = 0) }
+        reduce { state.copy(isGroupCreateBottomSheetVisible = false, groupNameError = null, errorId = 0, groupName = "") }
     }
 
     private fun openGroupCreateBottomSheet() = intent {

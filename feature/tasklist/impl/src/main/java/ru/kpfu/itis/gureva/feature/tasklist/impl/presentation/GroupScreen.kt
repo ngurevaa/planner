@@ -32,7 +32,7 @@ import ru.kpfu.itis.gureva.core.ui.noRippleClickable
 import ru.kpfu.itis.gureva.feature.tasklist.impl.R
 
 @Composable
-fun GroupScreen(groupId: Int?) {
+fun GroupScreen(groupId: Long?) {
     val viewModel = hiltViewModel<GroupViewModel, GroupViewModel.Factory>(
         creationCallback = {factory -> factory.create(groupId) }
     )

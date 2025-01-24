@@ -15,8 +15,8 @@ internal class HomeRepositoryImpl @Inject constructor(
         return groupRepository.getAllGroups().mapList()
     }
 
-    override suspend fun saveGroup(name: String) {
-        groupRepository.saveGroup(name)
+    override suspend fun saveGroup(name: String): Long {
+        return groupRepository.saveGroup(name)
     }
 
     override suspend fun getGroupByName(name: String): Group? {
