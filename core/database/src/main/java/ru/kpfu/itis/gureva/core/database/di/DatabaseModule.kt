@@ -24,4 +24,7 @@ class DatabaseModule {
 
     @Provides
     fun groupDao(database: AppDatabase) = database.groupDao()
+
+    @Provides
+    fun taskDao(database: AppDatabase) = database.taskDao()
 }

@@ -8,8 +8,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
-import ru.kpfu.itis.gureva.feature.group.api.navigation.GroupRoute
-import ru.kpfu.itis.gureva.feature.group.impl.presentation.GroupScreen
+import ru.kpfu.itis.gureva.feature.tasklist.api.navigation.GroupRoute
+import ru.kpfu.itis.gureva.feature.tasklist.impl.presentation.GroupScreen
 import ru.kpfu.itis.gureva.feature.home.api.navigation.HomeRoute
 import ru.kpfu.itis.gureva.feature.home.impl.presentation.ui.screen.HomeScreen
 

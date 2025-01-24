@@ -1,10 +1,7 @@
 package ru.kpfu.itis.gureva.feature.home.impl.presentation.ui.screen
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import org.orbitmvi.orbit.ContainerHost
 import org.orbitmvi.orbit.viewmodel.container
 import ru.kpfu.itis.gureva.core.utils.CalendarUtil

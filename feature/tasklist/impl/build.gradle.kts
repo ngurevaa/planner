@@ -1,25 +1,19 @@
 plugins {
-    alias(libs.plugins.android.application)
+    alias(libs.plugins.android.library)
     alias(libs.plugins.jetbrains.kotlin.android)
     id("kotlin-kapt")
     id("com.google.dagger.hilt.android")
 }
 
 android {
-    namespace = "ru.kpfu.itis.gureva.app"
+    namespace = "ru.kpfu.itis.gureva.feature.tasklist.impl"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "ru.kpfu.itis.gureva.app"
         minSdk = 25
-        targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        vectorDrawables {
-            useSupportLibrary = true
-        }
+        consumerProguardFiles("consumer-rules.pro")
     }
 
     buildTypes {
@@ -52,21 +46,20 @@ android {
 }
 
 dependencies {
-    implementation(project(":feature:home:api"))
-    implementation(project(":feature:home:impl"))
     implementation(project(":feature:tasklist:api"))
-    implementation(project(":feature:tasklist:impl"))
     implementation(project(":core:database"))
+    implementation(project(":core:ui"))
     implementation(project(":core:designsystem"))
 
     implementation(libs.hilt.android)
     implementation(libs.androidx.hilt.navigation.compose)
     kapt(libs.hilt.compiler)
 
-    implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.lifecycle.runtime.compose)
 
-    implementation(libs.androidx.room.runtime)
-    kapt(libs.androidx.room.compiler)
+    implementation(libs.orbit.core)
+    implementation(libs.orbit.viewmodel)
+    implementation(libs.orbit.compose)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

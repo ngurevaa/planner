@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="btn_create_new_task">Добавить новую задачу</string>
+    <string name="new_task">Новая задача</string>
+</resources>
